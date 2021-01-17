@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'; 
-import { projectStorage } from '../firebase/config';
+import { projectStorage, projectFirestore, timestamp } from '../firebase/config';
 
 /* A hook is a small chunk of reusable code */ 
 
@@ -15,6 +15,8 @@ const useStorage = (file) => {
 
         /* Creating a reference into the Firebase bucket */
         const storageRef = projectStorage.ref(file.name);
+
+        const collectionRef = projectFirestore.collection('images');
         
         /* Upload the file to the reference in storageRef */
         storageRef.put(file).on('state_changed',(snap) => {
@@ -27,6 +29,8 @@ const useStorage = (file) => {
         }, async ()=> {
             /* Asynchronous Function - Finds the file after it's done uploading and finds the download URL, stores it in url */
             const url = await storageRef.getDownloadURL();
+            const createdAt = timestamp();
+            collectionRef.add({ url, createdAt })
             setUrl(url);
         });
     }, [file]);
